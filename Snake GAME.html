@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snake Game with Touch Controls</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #181818;
+      font-family: Arial, sans-serif;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .button {
+      padding: 15px 30px;
+      border: none;
+      color: white;
+      font-size: 20px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+      border-radius: 8px;
+      backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+      margin: 10px;
+      pointer-events: auto; /* Ensures buttons are clickable */
+    }
+
+    .button:hover {
+      transform: scale(1.1);
+      box-shadow: 0 8px 25px rgba(255, 255, 255, 0.6);
+    }
+
+    #homePage, #gamePage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    canvas {
+      background-color: #222;
+      background-image: linear-gradient(transparent 19px, rgba(0, 0, 0, 0.2) 1px),
+                        linear-gradient(90deg, transparent 19px, rgba(0, 0, 0, 0.2) 1px);
+      background-size: 20px 20px;
+      max-width: 100%;
+      height: auto;
+      touch-action: none; /* Prevent default touch actions */
+    }
+
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 20px;
+      color: white;
+    }
+
+    #restartButton {
+      display: none;
+    }
+
+    /* Mobile Styles */
+    @media (max-width: 600px) {
+      #homePage, #gamePage {
+        padding: 10px;
+      }
+
+      .button {
+        font-size: 18px;
+        padding: 12px 24px;
+      }
+
+      canvas {
+        width: 100%;
+        height: auto;
+      }
+
+      #score {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="homePage">
+    <button class="button" id="playButton">Play</button>
+  </div>
+
+  <div id="gamePage" class="game-container" style="display: none;">
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <div id="score">Score: 0</div>
+    <button class="button" id="restartButton">Restart</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const playButton = document.getElementById("playButton");
+    const restartButton = document.getElementById("restartButton");
+
+    const tileSize = 20;
+    const rows = canvas.width / tileSize;
+    const columns = canvas.height / tileSize;
+
+    let snake = [{ x: 8, y: 8 }];
+    let direction = { x: 1, y: 0 };
+    let food = { x: 5, y: 5 };
+    let score = 0;
+    let gameOver = false;
+    let gameInterval;
+    let trail = [];
+
+    const speed = 160;
+
+    function drawSnake() {
+      ctx.shadowColor = "rgba(255, 255, 255, 0.4)";
+      ctx.shadowBlur = 10;
+
+      snake.forEach((segment, index) => {
+        let brightness = 255 - index * 10;
+        if (brightness < 50) brightness = 50;
+
+        ctx.fillStyle = `rgb(${brightness}, ${brightness}, ${brightness})`;
+
+        if (index === 0) {
+          ctx.fillStyle = "white";
+          ctx.shadowColor = "white";
+          ctx.shadowBlur = 15;
+        }
+
+        ctx.fillRect(segment.x * tileSize, segment.y * tileSize, tileSize, tileSize);
+        ctx.shadowBlur = 0;
+      });
+
+      drawTrail();
+    }
+
+    function drawTrail() {
+      if (trail.length > 0) {
+        for (let i = 0; i < trail.length; i++) {
+          let opacity = (i + 1) / trail.length;
+          ctx.fillStyle = `rgba(0, 0, 0, ${opacity * 0.6})`;
+          ctx.fillRect(trail[i].x * tileSize, trail[i].y * tileSize, tileSize, tileSize);
+        }
+      }
+    }
+
+    function drawFood() {
+      ctx.fillStyle = "rgb(57, 255, 20)";
+      ctx.shadowColor = "rgb(57, 255, 20)";
+      ctx.shadowBlur = 15;
+      ctx.fillRect(food.x * tileSize, food.y * tileSize, tileSize, tileSize);
+      ctx.shadowBlur = 0;
+    }
+
+    function moveSnake() {
+      const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
+      snake.unshift(head);
+
+      if (head.x === food.x && head.y === food.y) {
+        score++;
+        document.getElementById("score").innerText = `Score: ${score}`;
+        spawnFood();
+      } else {
+        let removedSegment = snake.pop();
+        trail.push(removedSegment);
+
+        if (trail.length > 8) {
+          trail.shift();
+        }
+      }
+
+      if (head.x < 0 || head.x >= rows || head.y < 0 || head.y >= columns || checkCollision(head)) {
+        gameOver = true;
+        document.getElementById("restartButton").style.display = "block"; // Show restart button
+        alert("Game Over!");
+      }
+    }
+
+    function checkCollision(head) {
+      return snake.some((segment, index) => index !== 0 && segment.x === head.x && segment.y === head.y);
+    }
+
+    function spawnFood() {
+      const randomX = Math.floor(Math.random() * rows);
+      const randomY = Math.floor(Math.random() * columns);
+      food = { x: randomX, y: randomY };
+
+      if (snake.some(segment => segment.x === food.x && segment.y === food.y)) {
+        spawnFood();
+      }
+    }
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchEndX = 0;
+    let touchEndY = 0;
+
+    function touchStart(event) {
+      touchStartX = event.touches[0].clientX;
+      touchStartY = event.touches[0].clientY;
+    }
+
+    function touchEnd(event) {
+      event.preventDefault(); // Prevent default touch action
+
+      touchEndX = event.changedTouches[0].clientX;
+      touchEndY = event.changedTouches[0].clientY;
+
+      let deltaX = touchEndX - touchStartX;
+      let deltaY = touchEndY - touchStartY;
+
+      if (Math.abs(deltaX) > Math.abs(deltaY) && deltaX < 0) {
+        if (direction.x === 0) direction = { x: -1, y: 0 }; // Swipe Left
+      }
+      if (Math.abs(deltaX) > Math.abs(deltaY) && deltaX > 0) {
+        if (direction.x === 0) direction = { x: 1, y: 0 }; // Swipe Right
+      }
+      if (Math.abs(deltaY) > Math.abs(deltaX) && deltaY < 0) {
+        if (direction.y === 0) direction = { x: 0, y: -1 }; // Swipe Up
+      }
+      if (Math.abs(deltaY) > Math.abs(deltaX) && deltaY > 0) {
+        if (direction.y === 0) direction = { x: 0, y: 1 }; // Swipe Down
+      }
+    }
+
+    canvas.addEventListener("touchstart", touchStart, false);
+    canvas.addEventListener("touchend", touchEnd, false);
+
+    document.addEventListener("keydown", function(event) {
+      if (event.key === 'ArrowUp' && direction.y === 0) {
+        direction = { x: 0, y: -1 }; 
+      } else if (event.key === 'ArrowDown' && direction.y === 0) {
+        direction = { x: 0, y: 1 }; 
+      } else if (event.key === 'ArrowLeft' && direction.x === 0) {
+        direction = { x: -1, y: 0 }; 
+      } else if (event.key === 'ArrowRight' && direction.x === 0) {
+        direction = { x: 1, y: 0 }; 
+      }
+    });
+
+    function updateGame() {
+      if (gameOver) return;
+
+      moveSnake();
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawSnake();
+      drawFood();
+    }
+
+    function startGame() {
+      gameOver = false;
+      score = 0;
+      snake = [{ x: 8, y: 8 }];
+      trail = [];
+      direction = { x: 1, y: 0 };
+      document.getElementById("score").innerText = `Score: ${score}`;
+      document.getElementById("restartButton").style.display = "none"; 
+      spawnFood();
+
+      if (gameInterval) clearInterval(gameInterval);
+      gameInterval = setInterval(updateGame, speed);
+    }
+
+    function resetGame() {
+      clearInterval(gameInterval);
+      document.getElementById("restartButton").style.display = "none";
+      startGame();
+    }
+
+    // Unified event listeners for buttons
+    playButton.addEventListener("click", function() {
+      document.getElementById("homePage").style.display = "none";
+      document.getElementById("gamePage").style.display = "flex";
+      startGame();
+    });
+
+    restartButton.addEventListener("click", function() {
+      resetGame();
+    });
+
+    playButton.addEventListener("touchstart", function(event) {
+      event.preventDefault();
+      document.getElementById("homePage").style.display = "none";
+      document.getElementById("gamePage").style.display = "flex";
+      startGame();
+    });
+
+    restartButton.addEventListener("touchstart", function(event) {
+      event.preventDefault();
+      resetGame();
+    });
+  </script>
+</body>
+</html>
