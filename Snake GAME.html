@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Snake Game with Touch Controls</title>
+  <title>Snake Game</title>
   <style>
     body {
       margin: 0;
@@ -230,7 +230,7 @@
       if (head.x < 0 || head.x >= rows || head.y < 0 || head.y >= columns || checkCollision(head)) {
         gameOver = true;
         document.getElementById("restartButton").style.display = "block"; // Show restart button
-        alert("Game Over!");
+        // alert("Game Over!");  // Removed the alert message
       }
     }
 
@@ -325,28 +325,34 @@
       startGame();
     }
 
-    // Unified event listeners for buttons
+    let playButtonTappedOnce = false;
+    let restartButtonTappedOnce = false;
+
     playButton.addEventListener("click", function() {
-      document.getElementById("homePage").style.display = "none";
-      document.getElementById("gamePage").style.display = "flex";
-      startGame();
+      if (!playButtonTappedOnce) {
+        playButton.classList.add("hover");
+        playButtonTappedOnce = true;
+      } else {
+        document.getElementById("homePage").style.display = "none";
+        document.getElementById("gamePage").style.display = "flex";
+        startGame();
+        playButtonTappedOnce = false;
+        playButton.classList.remove("hover");
+      }
     });
 
     restartButton.addEventListener("click", function() {
-      resetGame();
+      if (!restartButtonTappedOnce) {
+        restartButton.classList.add("hover");
+        restartButtonTappedOnce = true;
+      } else {
+        resetGame();
+        restartButtonTappedOnce = false;
+        restartButton.classList.remove("hover");
+      }
     });
 
-    playButton.addEventListener("touchstart", function(event) {
-      event.preventDefault();
-      document.getElementById("homePage").style.display = "none";
-      document.getElementById("gamePage").style.display = "flex";
-      startGame();
-    });
-
-    restartButton.addEventListener("touchstart", function(event) {
-      event.preventDefault();
-      resetGame();
-    });
   </script>
 </body>
 </html>
+
