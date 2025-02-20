@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Snake Game</title>
+  
   <style>
     body {
       margin: 0;
@@ -17,7 +18,6 @@
       overflow: hidden;
     }
 
-    /* Glowing Button Styles */
     .btn {
       margin: 20px;
       padding: 15px 40px;
@@ -44,7 +44,6 @@
       border-radius: 10px;
     }
 
-    /* glow */
     .btn::before {
       content: "";
       background: linear-gradient(
@@ -72,7 +71,6 @@
       100% {background-position: 0 0;}
     }
 
-    /* hover */
     .btn:hover::before {
       opacity: 1;
     }
@@ -116,7 +114,39 @@
       display: none;
     }
 
-    /* Mobile Styles */
+  #winMessage {
+  font-family: 'neon', Arial, sans-serif;
+  font-size: 4vw;
+  line-height: 4vw;
+  color: white; /* Default white color */
+  text-shadow: none; /* No glow by default */
+  transition: text-shadow 0.3s ease-in-out; /* Smooth transition */
+  display: none;
+}
+
+#winMessage:hover {
+  text-shadow: 0 0 10px white, 0 0 20px white, 0 0 30px white, 0 0 40px white, 
+               0 0 50px white, 0 0 60px white, 0 0 70px white;
+  animation: glowingWhite 2s linear infinite;
+}
+
+@keyframes glowingWhite {
+  0% {
+    text-shadow: 0 0 10px white, 0 0 20px white, 0 0 30px white, 0 0 40px white, 
+                 0 0 50px white, 0 0 60px white, 0 0 70px white;
+  }
+  50% {
+    text-shadow: 0 0 15px white, 0 0 30px white, 0 0 45px white, 0 0 60px white, 
+                 0 0 75px white, 0 0 90px white, 0 0 105px white;
+  }
+  100% {
+    text-shadow: 0 0 10px white, 0 0 20px white, 0 0 30px white, 0 0 40px white, 
+                 0 0 50px white, 0 0 60px white, 0 0 70px white;
+  }
+}
+
+
+
     @media (max-width: 600px) {
       #homePage, #gamePage {
         padding: 10px;
@@ -139,13 +169,19 @@
   </style>
 </head>
 <body>
+  <div id="winMessage" class="neon-container">
+  <div class="neon">Congratulations</div>
+  <div class="flux">You Won!</div>
+</div>
   <div id="homePage">
+    <input type="text" id="playerName" placeholder="Enter your name" style="padding: 10px; margin-bottom: 20px; font-size: 16px; border-radius: 5px; border: none; outline: none;" />
     <button class="btn" id="playButton">Play</button>
   </div>
 
   <div id="gamePage" class="game-container" style="display: none;">
     <canvas id="gameCanvas" width="400" height="400"></canvas>
     <div id="score">Score: 0</div>
+    <div id="winMessage"></div>
     <button class="btn" id="restartButton">Restart</button>
   </div>
 
@@ -154,6 +190,8 @@
     const ctx = canvas.getContext("2d");
     const playButton = document.getElementById("playButton");
     const restartButton = document.getElementById("restartButton");
+    const playerNameInput = document.getElementById("playerName");
+    const winMessage = document.getElementById("winMessage");
 
     const tileSize = 20;
     const rows = canvas.width / tileSize;
@@ -218,6 +256,10 @@
         score++;
         document.getElementById("score").innerText = `Score: ${score}`;
         spawnFood();
+
+        if (score === 20) {
+          winGame();
+        }
       } else {
         let removedSegment = snake.pop();
         trail.push(removedSegment);
@@ -229,8 +271,7 @@
 
       if (head.x < 0 || head.x >= rows || head.y < 0 || head.y >= columns || checkCollision(head)) {
         gameOver = true;
-        document.getElementById("restartButton").style.display = "block"; // Show restart button
-        // alert("Game Over!");  // Removed the alert message
+        document.getElementById("restartButton").style.display = "block";
       }
     }
 
@@ -248,41 +289,13 @@
       }
     }
 
-    let touchStartX = 0;
-    let touchStartY = 0;
-    let touchEndX = 0;
-    let touchEndY = 0;
-
-    function touchStart(event) {
-      touchStartX = event.touches[0].clientX;
-      touchStartY = event.touches[0].clientY;
+    function winGame() {
+      clearInterval(gameInterval);
+      winMessage.style.display = "block";
+      const playerName = playerNameInput.value || "Player";
+      winMessage.innerHTML = `Congratulations! ${playerName}, you have won the game!`;
+      document.getElementById("restartButton").style.display = "block";
     }
-
-    function touchEnd(event) {
-      event.preventDefault(); // Prevent default touch action
-
-      touchEndX = event.changedTouches[0].clientX;
-      touchEndY = event.changedTouches[0].clientY;
-
-      let deltaX = touchEndX - touchStartX;
-      let deltaY = touchEndY - touchStartY;
-
-      if (Math.abs(deltaX) > Math.abs(deltaY) && deltaX < 0) {
-        if (direction.x === 0) direction = { x: -1, y: 0 }; // Swipe Left
-      }
-      if (Math.abs(deltaX) > Math.abs(deltaY) && deltaX > 0) {
-        if (direction.x === 0) direction = { x: 1, y: 0 }; // Swipe Right
-      }
-      if (Math.abs(deltaY) > Math.abs(deltaX) && deltaY < 0) {
-        if (direction.y === 0) direction = { x: 0, y: -1 }; // Swipe Up
-      }
-      if (Math.abs(deltaY) > Math.abs(deltaX) && deltaY > 0) {
-        if (direction.y === 0) direction = { x: 0, y: 1 }; // Swipe Down
-      }
-    }
-
-    canvas.addEventListener("touchstart", touchStart, false);
-    canvas.addEventListener("touchend", touchEnd, false);
 
     document.addEventListener("keydown", function(event) {
       if (event.key === 'ArrowUp' && direction.y === 0) {
@@ -312,6 +325,7 @@
       trail = [];
       direction = { x: 1, y: 0 };
       document.getElementById("score").innerText = `Score: ${score}`;
+      winMessage.style.display = "none";
       document.getElementById("restartButton").style.display = "none"; 
       spawnFood();
 
@@ -319,40 +333,15 @@
       gameInterval = setInterval(updateGame, speed);
     }
 
-    function resetGame() {
-      clearInterval(gameInterval);
-      document.getElementById("restartButton").style.display = "none";
-      startGame();
-    }
-
-    let playButtonTappedOnce = false;
-    let restartButtonTappedOnce = false;
-
     playButton.addEventListener("click", function() {
-      if (!playButtonTappedOnce) {
-        playButton.classList.add("hover");
-        playButtonTappedOnce = true;
-      } else {
-        document.getElementById("homePage").style.display = "none";
-        document.getElementById("gamePage").style.display = "flex";
-        startGame();
-        playButtonTappedOnce = false;
-        playButton.classList.remove("hover");
-      }
+      document.getElementById("homePage").style.display = "none";
+      document.getElementById("gamePage").style.display = "flex";
+      startGame();
     });
 
     restartButton.addEventListener("click", function() {
-      if (!restartButtonTappedOnce) {
-        restartButton.classList.add("hover");
-        restartButtonTappedOnce = true;
-      } else {
-        resetGame();
-        restartButtonTappedOnce = false;
-        restartButton.classList.remove("hover");
-      }
+      startGame();
     });
-
   </script>
 </body>
 </html>
-
