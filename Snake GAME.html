@@ -7,6 +7,156 @@
   
   <style>
     body {
+    background-color: #121212;
+    color: #e0e0e0;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.leaderboard {
+    background-color: #1e1e1e;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 25px rgba(0, 0, 0, 0.8); /* Black glowing effect around the table */
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+    position: relative;
+    transition: box-shadow 0.3s ease; /* Smooth transition for glow effect on hover */
+  margin-left: px; 
+  margin-top: -50px;
+}
+
+h1 {
+    font-size: 2em;
+    margin-bottom: 20px;
+    color: #fff;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* General styles for table cells */
+th, td {
+    padding: 12px;
+    text-align: left;
+    color: #fff;
+    font-size: 1.1em;
+}
+
+/* Table header background color */
+th {
+    background-color: #333;
+    font-weight: bold;
+    position: relative;
+}
+
+/* Table rows background color */
+td {
+    background-color: #2c2c2c;
+    transition: all 0.3s ease;
+}
+
+/* Alternating row colors */
+tr:nth-child(odd) td {
+    background-color: #222;
+}
+
+tr:hover td {
+    background-color: #444; /* Slightly brighter on row hover */
+}
+
+/* Permanent black glow effect around the table */
+.leaderboard {
+    box-shadow: 0 0 25px rgba(0, 0, 0, 0.8); /* Static black glow */
+}
+
+/* Glow effect on the horizontal line below the Rank column title */
+th:nth-child(1):hover::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: #00bfff; /* Light Blue glow */
+    box-shadow: 0 0 10px #00bfff, 0 0 20px #00bfff;
+}
+
+/* Glow effect on the horizontal line below the Name column title */
+th:nth-child(2):hover::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: #32cd32; /* Lime Green glow */
+    box-shadow: 0 0 10px #32cd32, 0 0 20px #32cd32;
+}
+
+/* Glow effect on the horizontal line below the Score column title */
+th:nth-child(3):hover::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: #ff4500; /* Orange Red glow */
+    box-shadow: 0 0 10px #ff4500, 0 0 20px #ff4500;
+}
+
+/* Glow effect on Rank column (1st column) when hovered */
+td:nth-child(1):hover, th:nth-child(1):hover {
+    color: #00bfff; /* Light Blue glow */
+    text-shadow: 0 0 10px #00bfff, 0 0 20px #00bfff;
+}
+
+td:nth-child(1):hover {
+    background-color: #333; /* Keep Rank background consistent */
+}
+
+/* Glow effect on Name column (2nd column) when hovered */
+td:nth-child(2):hover, th:nth-child(2):hover {
+    color: #32cd32; /* Lime Green glow */
+    text-shadow: 0 0 10px #32cd32, 0 0 20px #32cd32;
+}
+
+td:nth-child(2):hover {
+    background-color: #333; /* Keep Name background consistent */
+}
+
+/* Glow effect on Score column (3rd column) when hovered */
+td:nth-child(3):hover, th:nth-child(3):hover {
+    color: #ff4500; /* Orange Red glow */
+    text-shadow: 0 0 10px #ff4500, 0 0 20px #ff4500;
+}
+
+td:nth-child(3):hover {
+    background-color: #333; /* Keep Score background consistent */
+}
+
+/* Glow effect on entire vertical column of scores when any score is hovered */
+td:nth-child(3):hover, td:nth-child(3):nth-child(odd):hover {
+    color: #ff4500;
+    text-shadow: 0 0 10px #ff4500, 0 0 20px #ff4500;
+}
+
+/* Glowing effect on the entire row and column when hovering over any score */
+tr:hover td:nth-child(3), td:nth-child(3):hover {
+    background-color: #444; /* Make the score column glow with hover */
+    color: #ff4500; /* Glow color */
+    text-shadow: 0 0 15px #ff4500;
+}
+    body {
       margin: 0;
       display: flex;
       justify-content: center;
@@ -169,6 +319,29 @@
   </style>
 </head>
 <body>
+  <div id="leaderboard">
+    <!-- Your leaderboard content -->
+</div>
+
+  <!-- Leaderboard div -->
+<div class="leaderboard" id="leaderboard">
+    <!-- Your leaderboard content here -->
+</div>
+  <div class="leaderboard">
+    <h1>Leaderboard</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Name</th>
+                <th>Score</th>
+            </tr>
+        </thead>
+        <tbody id="leaderboard-body">
+            <!-- Leaderboard items will be injected here by JavaScript -->
+        </tbody>
+    </table>
+</div>
   <div id="winMessage" class="neon-container">
   <div class="neon">Congratulations</div>
   <div class="flux">You Won!</div>
@@ -342,6 +515,43 @@
     restartButton.addEventListener("click", function() {
       startGame();
     });
+    
+    const leaderboardData = [
+    { name: "Enric", score: 20 },
+    { name: "John Doe", score: 1500 },
+    { name: "Jane Smith", score: 1200 },
+    { name: "Alex Johnson", score: 950 },
+    { name: "Emily Davis", score: 800 },
+    { name: "Michael Brown", score: 650 }
+];
+
+// Function to load leaderboard data dynamically
+function loadLeaderboard() {
+    const tbody = document.getElementById("leaderboard-body");
+    leaderboardData.forEach((player, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${player.name}</td>
+            <td>${player.score}</td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+// Load the leaderboard when the page loads
+window.onload = loadLeaderboard;
+    
+    document.addEventListener("DOMContentLoaded", function () {
+    const leaderboard = document.getElementById("leaderboard"); // Change ID if necessary
+    if (window.location.pathname !== "/") { 
+        leaderboard.style.display = "none"; // Hide leaderboard on non-home pages
+    } else {
+        leaderboard.style.display = "block"; // Show leaderboard on home page
+    }
+});
+
+    
   </script>
 </body>
 </html>
